@@ -2,11 +2,13 @@ const { Telegraf } = require('telegraf');
 require('dotenv').config();
 const { message } = require('telegraf/filters');
 
-const bot = new Telegraf(process.env.BOT_TOKEN,{
-    telegram: {
-      apiRoot: process.env.ROOT
-    }
-  });
+const bot = new Telegraf(process.env.BOT_TOKEN
+  // ,{
+  //   telegram: {
+  //     apiRoot: process.env.ROOT
+  //   }
+  // }
+  );
 bot.start((ctx) => ctx.reply('Welcome'));
 bot.help((ctx) => ctx.reply('Send me a sticker'));
 bot.on(message('sticker'), (ctx) => ctx.reply('👍'));
