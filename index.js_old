@@ -1,0 +1,64 @@
+const fs = require('fs');
+const { spawn } = require('child_process');
+const axios = require('axios');
+
+// Replace 'http://localhost:8990' with the URL of your local Telegram bot server running on port 8990
+const localApiServer = 'http://localhost:8990';
+
+// Replace 'YOUR_APP_ID' and 'YOUR_APP_HASH' with the actual app ID and hash key obtained from my.telegram.org
+
+const appId = 'YOUR_APP_ID';
+const appHash = 'YOUR_APP_HASH';
+
+// Function to send a file to your local server and relay it to Telegram
+async function sendFileToServer(filePath, chatId) {
+  try {
+    const fileStream = fs.createReadStream(filePath);
+    const uploadUrl = `${localApiServer}/uploadFile?chatId=${chatId}`;
+
+    // Send each chunk of the file separately to the server
+    for await (const chunk of fileStream) {
+      await axios.post(uploadUrl, chunk, {
+        headers: {
+          'Content-Type': 'application/octet-stream',
+        },
+      });
+    }
+
+    console.log('File uploaded and relayed to Telegram successfully.');
+  } catch (error) {
+    console.error('Error uploading and relaying file:', error);
+  }
+}
+
+// Example usage: Send a file to your local server with a specific chat ID
+const filePath = '/path/to/your/file.txt';
+const chatId = '123456789'; // Replace with the desired chat ID
+sendFileToServer(filePath, chatId);
+
+// Function to relay text message to Telegram
+function sendMessageToTelegram(text, chatId) {
+  // Call the local bot library executable to send the message to Telegram
+  const localBotExecutable = './telegram-bot-api'; // Replace with the path to your local bot library executable
+  const botProcess = spawn(localBotExecutable, ['sendMessage', text, chatId]);
+
+  botProcess.stdout.on('data', (data) => {
+    // Handle the response from the local bot library (if needed)
+    console.log(`Response from local bot library: ${data}`);
+  });
+
+  botProcess.stderr.on('data', (error) => {
+    // Handle any errors from the local bot library (if needed)
+    console.error(`Error from local bot library: ${error}`);
+  });
+
+  botProcess.on('close', (code) => {
+    // Handle when the local bot library process exits (if needed)
+    console.log(`Local bot library process exited with code ${code}`);
+  });
+}
+
+// Example usage: Send a text message to your local server with a specific chat ID
+const textMessage = 'Hello, this is a text message!';
+const chatIdForText = '123456789'; // Replace with the desired chat ID
+sendMessageToTelegram(textMessage, chatIdForText);
